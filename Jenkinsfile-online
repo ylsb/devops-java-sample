@@ -107,7 +107,16 @@ pipeline {
           }
           steps {
             input(id: 'deploy-to-production', message: 'deploy to production?')
-            kubernetesDeploy(configs: 'deploy/prod-ol/**', enableConfigSubstitution: true, kubeconfigId: "$KUBECONFIG_CREDENTIAL_ID")
+            #kubernetesDeploy(configs: 'deploy/prod-ol/**', enableConfigSubstitution: true, kubeconfigId: "$KUBECONFIG_CREDENTIAL_ID")
+            container ('maven') {
+                withCredentials([
+                    kubeconfigFile(
+                    credentialsId: env.KUBECONFIG_CREDENTIAL_ID,
+                    variable: 'KUBECONFIG')
+                    ]) {
+                    sh 'envsubst < deploy/prod-ol/devops-sample.yaml | kubectl apply -f -'
+                }
+            }
           }
         }
     }
